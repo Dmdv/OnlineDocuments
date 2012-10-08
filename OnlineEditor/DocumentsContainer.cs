@@ -140,6 +140,7 @@ namespace OnlineEditor
 			lock (_sync)
 			{
 				return _hash
+					.OrderBy(x=>x.Value.CreationTime)
 					.Select(x => x.Value.IsOpened ? string.Format("{0} (read only: {1})", x.Key, x.Value.Owner) : x.Key)
 					.ToArray();
 			}
