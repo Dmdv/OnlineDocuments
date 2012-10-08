@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 
 namespace OnlineEditor.Managers
@@ -13,45 +12,39 @@ namespace OnlineEditor.Managers
 			return new Document(new MemoryStream(), name);
 		}
 
-		public Document Open(string name)
+		public string Read(Document doc)
 		{
-			return null;
+			return doc.Read();
+		}
+
+		public bool Write(Document doc, string text)
+		{
+			doc.Write(text);
+			return true;
 		}
 
 		public bool Delete(Document doc)
 		{
-			try
-			{
-				doc.Close();
-				return true;
-			}
-			catch (Exception)
-			{
-				return false;
-			}
+			doc.Dispose();
+			return true;
 		}
 
-		public bool Delete(string name)
+		public bool Close(Document doc)
 		{
 			return false;
 		}
 
-		public bool Close(string name)
+		public bool SupportWriting()
 		{
-			return false;
+			return true;
 		}
 
-		public bool CanOpen()
+		public bool SupportDelete()
 		{
-			return false;
+			return true;
 		}
 
-		public bool CanDelete()
-		{
-			return false;
-		}
-
-		public bool CanClose()
+		public bool SupportClose()
 		{
 			return false;
 		}

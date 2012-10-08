@@ -6,7 +6,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{3CAAC852-30ED-401A-9C7B-65A0EC86AD6A}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OnlineEditor</RootNamespace>
     <AssemblyName>OnlineEditor</AssemblyName>
@@ -33,30 +33,33 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Channel\DocumentsRepositoryClient.cs" />
     <Compile Include="DocumentsContainer.cs" />
     <Compile Include="Document.cs" />
-    <Compile Include="DocumentsRepository.cs" />
-    <Compile Include="IDocumentRepository.cs" />
+    <Compile Include="Service\DocumentsRepository.cs" />
+    <Compile Include="Extensions\Invoke.cs" />
+    <Compile Include="Service\IDocumentRepository.cs" />
+    <Compile Include="InternalResult.cs" />
     <Compile Include="Managers\FileSystemDocuments.cs" />
-    <Compile Include="IDocumentFactory.cs" />
+    <Compile Include="Managers\IDocumentFactory.cs" />
     <Compile Include="Managers\MemoryDocuments.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Extensions\" />
+    <Compile Include="Service\Result.cs" />
+    <Compile Include="Service\ServiceFactory.cs" />
+    <Compile Include="Service\State.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ProjectExtensions />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

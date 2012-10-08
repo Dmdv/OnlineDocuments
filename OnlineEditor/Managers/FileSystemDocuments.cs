@@ -12,6 +12,21 @@ namespace OnlineEditor.Managers
 			throw new NotImplementedException();
 		}
 
+		public string Read(Document doc)
+		{
+			throw new NotImplementedException();
+		}
+
+		public bool Write(Document doc, string text)
+		{
+			throw new NotImplementedException();
+		}
+
+		public bool Close(Document doc)
+		{
+			throw new NotImplementedException();
+		}
+
 		public Document Open(string name)
 		{
 			throw new NotImplementedException();
@@ -32,17 +47,17 @@ namespace OnlineEditor.Managers
 			throw new NotImplementedException();
 		}
 
-		public bool CanOpen()
+		public bool SupportWriting()
 		{
 			return true;
 		}
 
-		public bool CanDelete()
+		public bool SupportDelete()
 		{
 			return true;
 		}
 
-		public bool CanClose()
+		public bool SupportClose()
 		{
 			return true;
 		}

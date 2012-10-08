@@ -1,6 +1,6 @@
 using OnlineEditor.Managers;
 
-namespace OnlineEditor
+namespace OnlineEditor.Service
 {
 	/// <summary>
 	/// Responsible for creating of document factory and keeps the thread-safe documents container.
@@ -18,44 +18,34 @@ namespace OnlineEditor
 			_container = new DocumentsContainer(new MemoryDocuments());
 		}
 
-		public Document Create(string name = "Новый документ")
+		public Result Create(string name, string owner)
 		{
-			return _container.Create(name);
+			return _container.Create(name, owner);
 		}
 
-		public Document Open(string name)
+		public Result Open(string name, string owner)
 		{
-			return _container.Open(name);
+			return _container.Open(name, owner);
 		}
 
-		public bool Delete(Document doc)
+		public Result Write(string name, string owner, string text)
 		{
-			return _container.Delete(doc);
+			return _container.Write(name, owner, text);
 		}
 
-		public bool Delete(string name)
+		public Result Close(string name, string owner)
 		{
-			return _container.Delete(name);
+			return _container.Close(name, owner);
 		}
 
-		public bool Close(string name)
+		public Result Delete(string name, string owner)
 		{
-			throw new System.NotImplementedException();
+			return _container.Delete(name, owner);
 		}
 
-		public bool CanOpen()
+		public string[] AvailableDocuments()
 		{
-			return true;
-		}
-
-		public bool CanDelete()
-		{
-			return true;
-		}
-
-		public bool CanClose()
-		{
-			return true;
+			return _container.AvailableDocuments();
 		}
 	}
 }
