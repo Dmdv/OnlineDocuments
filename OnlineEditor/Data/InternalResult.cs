@@ -1,6 +1,6 @@
 using System;
 
-namespace OnlineEditor
+namespace OnlineEditor.Data
 {
 	internal class InternalResult
 	{

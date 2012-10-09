@@ -39,9 +39,14 @@ namespace OnlineEditor.Channel
 			return Channel.Delete(name, owner);
 		}
 
-		public string[] AvailableDocuments()
+		public Document[] AvailableDocuments()
 		{
 			return Channel.AvailableDocuments();
+		}
+
+		public bool Ping()
+		{
+			return Channel.Ping();
 		}
 	}
 }

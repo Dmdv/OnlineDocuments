@@ -44,12 +44,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Channel\DocumentsRepositoryClient.cs" />
-    <Compile Include="DocumentsContainer.cs" />
-    <Compile Include="Document.cs" />
+    <Compile Include="Data\DocumentsContainer.cs" />
+    <Compile Include="Data\Document.cs" />
+    <Compile Include="Service\Document.cs" />
     <Compile Include="Service\DocumentsRepository.cs" />
     <Compile Include="Extensions\Invoke.cs" />
     <Compile Include="Service\IDocumentRepository.cs" />
-    <Compile Include="InternalResult.cs" />
+    <Compile Include="Data\InternalResult.cs" />
     <Compile Include="Managers\FileSystemDocuments.cs" />
     <Compile Include="Managers\IDocumentFactory.cs" />
     <Compile Include="Managers\MemoryDocuments.cs" />
@@ -58,6 +59,7 @@
     <Compile Include="Service\ServiceFactory.cs" />
     <Compile Include="Service\State.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -1,3 +1,5 @@
+using System.ServiceModel;
+using OnlineEditor.Data;
 using OnlineEditor.Managers;
 
 namespace OnlineEditor.Service
@@ -5,6 +7,7 @@ namespace OnlineEditor.Service
 	/// <summary>
 	/// Responsible for creating of document factory and keeps the thread-safe documents container.
 	/// </summary>
+	[ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
 	public class DocumentsRepository : IDocumentsRepository
 	{
 		private readonly DocumentsContainer _container;
@@ -43,9 +46,14 @@ namespace OnlineEditor.Service
 			return _container.Delete(name, owner);
 		}
 
-		public string[] AvailableDocuments()
+		public Document[] AvailableDocuments()
 		{
 			return _container.AvailableDocuments();
+		}
+
+		public bool Ping()
+		{
+			return true;
 		}
 	}
 }

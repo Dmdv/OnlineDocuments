@@ -1,5 +1,4 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using OnlineEditor;
 using OnlineEditor.Service;
 
 namespace UnitTests
@@ -109,10 +108,10 @@ namespace UnitTests
 
 			var docs = repo.AvailableDocuments();
 			Assert.IsTrue(docs.Length == 4);
-			Assert.IsTrue(docs[0] == "doc1");
-			Assert.IsTrue(docs[1] == "doc2");
-			Assert.IsTrue(docs[2] == "doc3");
-			Assert.IsTrue(docs[3] == "doc4");
+			Assert.IsTrue(docs[0].Name == "doc1");
+			Assert.IsTrue(docs[1].Name == "doc2");
+			Assert.IsTrue(docs[2].Name == "doc3");
+			Assert.IsTrue(docs[3].Name == "doc4");
 		}
 
 		[TestMethod]
@@ -128,10 +127,10 @@ namespace UnitTests
 
 			var docs = repo.AvailableDocuments();
 			Assert.IsTrue(docs.Length == 4);
-			Assert.IsTrue(docs[0] == "doc1");
-			Assert.IsTrue(docs[1] == "doc2 (read only: user2)");
-			Assert.IsTrue(docs[2] == "doc3");
-			Assert.IsTrue(docs[3] == "doc4");
+			Assert.IsTrue(docs[0].Name == "doc1");
+			Assert.IsTrue(docs[1].Name == "doc2");
+			Assert.IsTrue(docs[2].Name == "doc3");
+			Assert.IsTrue(docs[3].Name == "doc4");
 		}
 
 		[TestMethod]
@@ -148,10 +147,10 @@ namespace UnitTests
 
 			var docs = repo.AvailableDocuments();
 			Assert.IsTrue(docs.Length == 4);
-			Assert.IsTrue(docs[0] == "doc1");
-			Assert.IsTrue(docs[1] == "doc2");
-			Assert.IsTrue(docs[2] == "doc3");
-			Assert.IsTrue(docs[3] == "doc4");
+			Assert.IsTrue(docs[0].Name == "doc1");
+			Assert.IsTrue(docs[1].Name == "doc2");
+			Assert.IsTrue(docs[2].Name == "doc3");
+			Assert.IsTrue(docs[3].Name == "doc4");
 		}
 
 		[TestMethod]
@@ -167,9 +166,20 @@ namespace UnitTests
 
 			var docs = repo.AvailableDocuments();
 			Assert.IsTrue(docs.Length == 3);
-			Assert.IsTrue(docs[0] == "doc1");
-			Assert.IsTrue(docs[1] == "doc3");
-			Assert.IsTrue(docs[2] == "doc4");
+			Assert.IsTrue(docs[0].Name == "doc1");
+			Assert.IsTrue(docs[1].Name == "doc3");
+			Assert.IsTrue(docs[2].Name == "doc4");
+		}
+
+		[TestMethod]
+		public void CreateLoadSaveLoad()
+		{
+			var repo = new DocumentsRepository();
+			var result = repo.Create("doc1", "user1");
+			result = repo.Open("doc1", "user1");
+			result = repo.Write("doc1", "user1", "sfsdfdfa");
+			result = repo.Open("doc1", "user1");
+			result = repo.Close("doc1", "user1");
 		}
 	}
 }

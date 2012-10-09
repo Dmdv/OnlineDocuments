@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 using OnlineEditor.Extensions;
 using System.Collections.Generic;
 using System.Linq;
 using OnlineEditor.Managers;
 using OnlineEditor.Service;
 
-namespace OnlineEditor
+namespace OnlineEditor.Data
 {
 	/// <summary>
 	/// Documents container, tracks currently available documents.
@@ -36,6 +37,9 @@ namespace OnlineEditor
 
 		public Result Create(string name, string owner)
 		{
+			if (string.IsNullOrEmpty(name))
+				name = "Новый документ";
+
 			lock (_sync)
 			{
 				name = UniqueName(name);
@@ -135,14 +139,17 @@ namespace OnlineEditor
 			return new Result {State = deleted ? State.Deleted : State.Closed, Success = deleted};
 		}
 
-		public string[] AvailableDocuments()
+		public Service.Document[] AvailableDocuments()
 		{
 			lock (_sync)
 			{
-				return _hash
-					.OrderBy(x=>x.Value.CreationTime)
-					.Select(x => x.Value.IsOpened ? string.Format("{0} (read only: {1})", x.Key, x.Value.Owner) : x.Key)
-					.ToArray();
+				return _hash.Select(x => new Service.Document
+				{
+					CreationDate = x.Value.CreationTime,
+					Name = x.Value.Name,
+					Owner = x.Value.Owner,
+					ReadOnly = x.Value.IsOpened
+				}).ToArray();
 			}
 		}
 
@@ -159,6 +166,7 @@ namespace OnlineEditor
 		private void LastError(Exception ex)
 		{
 			_lastResult = new InternalResult {Exception = ex, Success = ex == null};
+			Trace.WriteLine(ex);
 		}
 
 		private bool IsOpened(string name)

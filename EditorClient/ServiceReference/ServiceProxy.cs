@@ -6,7 +6,7 @@ namespace EditorClient.ServiceReference
 {
 	public static class Service
 	{
-		static Service()
+		public static void Start()
 		{
 			try
 			{
@@ -14,10 +14,12 @@ namespace EditorClient.ServiceReference
 				var factory = new ChannelFactory<IDocumentsRepository>(ServiceFactory.Binding,
 				                                                       new EndpointAddress(ServiceFactory.Uri));
 				Proxy = factory.CreateChannel();
+				Proxy.Ping();
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
-				Logger.LogError(ex.ToString());
+				Logger.LogError("Service is not available");
+				Proxy = null;
 			}
 		}
 

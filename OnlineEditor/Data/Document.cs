@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace OnlineEditor
+namespace OnlineEditor.Data
 {
 	/// <summary>
 	/// Document.
@@ -11,7 +11,7 @@ namespace OnlineEditor
 	{
 		private readonly Stream _stream;
 
-		public Document(Stream stream, string name = "Новый документ")
+		public Document(Stream stream, string name)
 		{
 			_stream = stream;
 			IsOpened = false;

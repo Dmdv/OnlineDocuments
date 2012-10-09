@@ -1,3 +1,4 @@
+using System;
 using EditorClient.Commands;
 using EditorClient.ServiceReference;
 using OnlineEditor.Service;
@@ -11,7 +12,7 @@ namespace EditorClient.ViewModels
 	{
 		private string _name;
 		private string _text;
-		private readonly bool _isOpened;
+		private bool _isOpened;
 
 		public DocumentVm(string name)
 		{
@@ -21,21 +22,7 @@ namespace EditorClient.ViewModels
 			CloseCommand = new DelegateCommand<string>(Close, CanClose);
 			DeleteCommand = new DelegateCommand<string>(Delete, CanDelete);
 
-			var result = Service.Proxy.Open(Name, Service.CurrentUser);
-			if (result.Success)
-			{
-				Text = result.Buffer;
-				_isOpened = true;
-			}
-			else switch (result.State)
-			{
-				case State.Opened:
-					Logger.LogError(string.Format("{0} is opened for edit by another user", Name));
-					break;
-				case State.Deleted:
-					Logger.LogError(string.Format("{0} was deleted by another user", Name));
-					break;
-			}
+			Dispatcher.BeginInvoke(new Action(LoadDocument));
 		}
 
 		public DelegateCommand<string> SaveCommand { get; set; }
@@ -49,6 +36,7 @@ namespace EditorClient.ViewModels
 			{
 				_text = value;
 				OnPropertyChanged("Text");
+				SaveCommand.RaiseCanExecuteChanged();
 			}
 		}
 
@@ -62,7 +50,30 @@ namespace EditorClient.ViewModels
 			}
 		}
 
-		private void Close(string obj)
+		private void LoadDocument()
+		{
+			var result = Service.Proxy.Open(Name, Service.CurrentUser);
+			if (result.Success)
+			{
+				_isOpened = true;
+				Text = result.Buffer;
+			}
+			else
+				switch (result.State)
+				{
+					case State.Opened:
+						Logger.LogError(string.Format("{0} is opened for edit by another user", Name));
+						break;
+					case State.Deleted:
+						Logger.LogError(string.Format("{0} was deleted by another user", Name));
+						break;
+					default:
+						Text = "Failed to load text, Error: " + result.Buffer;
+						break;
+				}
+		}
+
+		private void CloseDocument()
 		{
 			var result = Service.Proxy.Close(Name, Service.CurrentUser);
 			if (!result.Success)
@@ -70,14 +81,10 @@ namespace EditorClient.ViewModels
 				const string Msg = "Failed to close document\r\nMessage: {0};\r\nState: {1}";
 				Logger.LogError(string.Format(Msg, result.Buffer, result.State));
 			}
+			Text = string.Empty;
 		}
 
-		private bool CanClose(string arg)
-		{
-			return _isOpened;
-		}
-
-		private void Delete(string obj)
+		private void DeleteDocument()
 		{
 			var result = Service.Proxy.Delete(Name, Service.CurrentUser);
 			if (!result.Success)
@@ -85,16 +92,36 @@ namespace EditorClient.ViewModels
 				const string Msg = "Failed to delete document\r\nMessage: {0};\r\nState: {1}";
 				Logger.LogError(string.Format(Msg, result.Buffer, result.State));
 			}
+			Text = string.Empty;
+		}
+
+		private void Close(string obj)
+		{
+			Dispatcher.BeginInvoke(new Action(CloseDocument));
+		}
+
+		private bool CanClose(string arg)
+		{
+			return Service.Online && _isOpened;
+		}
+
+		private void Delete(string obj)
+		{
+			Dispatcher.BeginInvoke(new Action(DeleteDocument));
 		}
 
 		private bool CanDelete(string arg)
 		{
-			return _isOpened;
+			return Service.Online && _isOpened;
 		}
 
 		private void Save(string text)
 		{
-			Service.Proxy.Write(Name, Service.CurrentUser, text);
+			var result = Service.Proxy.Write(Name, Service.CurrentUser, Text);
+			if (!result.Success)
+			{
+				Logger.LogError(result.Buffer);
+			}
 		}
 
 		private bool CanSave(string arg)

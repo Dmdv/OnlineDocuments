@@ -24,6 +24,9 @@ namespace OnlineEditor.Service
 		Result Delete(string name, string owner);
 
 		[OperationContract]
-		string[] AvailableDocuments();
+		Document[] AvailableDocuments();
+
+		[OperationContract]
+		bool Ping();
 	}
 }
