@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="EditorClient.MainWindow"
-        Title="{Binding ElementName=docList, Path=SelectedItem, FallbackValue='Online editor'}" Height="350" Width="525">
+        Title="{Binding ElementName=docList, Path=SelectedItem.Name, FallbackValue='Online editor'}" Height="462" Width="841">
     <Window.DataContext>
         <Binding Mode="OneWay" Path="DocumentListVm" Source="{StaticResource Locator}" />
     </Window.DataContext>
@@ -12,26 +12,30 @@
     		<RowDefinition Height="*"/>
     	</Grid.RowDefinitions>
     	<Grid.ColumnDefinitions>
-    		<ColumnDefinition Width="0.291*"/>
-    		<ColumnDefinition Width="0.709*"/>
+    		<ColumnDefinition Width="0.4*"/>
+    		<ColumnDefinition Width="0.6*"/>
     	</Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" Grid.ColumnSpan="2">
             <Button Content="Create" Width="60" Margin="5" Command="{Binding CreateCommand}"/>
             <Button Content="Load" Width="60" Margin="5" Command="{Binding LoadCommand}" CommandParameter="{Binding ElementName=docList, Path=SelectedItem, UpdateSourceTrigger=PropertyChanged}"/>
-            <Button Content="Save" Width="60" Margin="5" Command="{Binding Path=CurrentDocument.SaveCommand}"/>
-            <Button Content="Close" Width="60" Margin="5" Command="{Binding Path=CurrentDocument.CloseCommand}"/>
-            <Button Content="Delete" Width="60" Margin="5" Command="{Binding Path=CurrentDocument.DeleteCommand}"/>
+            <Button Content="Save" Width="60" Margin="5" Command="{Binding SelectedDocument.SaveCommand}" CommandParameter="{Binding ElementName=docList, Path=SelectedItem, UpdateSourceTrigger=PropertyChanged}"/>
+            <Button Content="Close" Width="60" Margin="5" Command="{Binding SelectedDocument.CloseCommand}" CommandParameter="{Binding ElementName=docList, Path=SelectedItem, UpdateSourceTrigger=PropertyChanged}"/>
+            <Button Content="Delete" Width="60" Margin="5" Command="{Binding SelectedDocument.DeleteCommand}" CommandParameter="{Binding ElementName=docList, Path=SelectedItem, UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
-        <ListBox x:Name="docList" Grid.Row="1" Margin="5" ItemsSource="{Binding Documents}" SelectedItem="{Binding SelectedDocument, UpdateSourceTrigger=PropertyChanged, Mode=OneWayToSource, FallbackValue=Offline}">
+        <ListBox x:Name="docList" Grid.Row="1" Margin="5" 
+                 ItemsSource="{Binding Documents}" 
+                 SelectedIndex="{Binding SelectedIndex, Mode=OneWay}"
+                 SelectedItem="{Binding SelectedDocument, UpdateSourceTrigger=PropertyChanged, Mode=OneWayToSource}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding UserName}"/>
+                    <TextBlock Text="{Binding Document.UserName}"/>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
         <RichTextBox Grid.Column="1" Grid.Row="1" Margin="5">
     		<FlowDocument>
-    			<Paragraph><Run Text="{Binding CurrentDocument.Text}"/></Paragraph>
+                <Paragraph>
+                    <Run Text="{Binding SelectedDocument.Text, Mode=TwoWay}"/></Paragraph>
     		</FlowDocument>
     	</RichTextBox>
     </Grid>

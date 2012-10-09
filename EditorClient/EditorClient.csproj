@@ -56,6 +56,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Helper\DocumentComparer.cs" />
+    <Compile Include="Helper\UserDocumentComparer.cs" />
     <Compile Include="ServiceReference\DefaultLogger.cs" />
     <Compile Include="ServiceReference\ILogger.cs" />
     <Compile Include="ServiceReference\ServiceProxy.cs" />

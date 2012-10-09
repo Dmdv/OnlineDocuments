@@ -1,4 +1,6 @@
-﻿namespace EditorClient
+﻿using OnlineEditor.Service;
+
+namespace EditorClient
 {
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml

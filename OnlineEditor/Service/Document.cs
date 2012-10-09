@@ -20,7 +20,9 @@ namespace OnlineEditor.Service
 
 		public string UserName
 		{
-			get { return ReadOnly ? string.Format("{0} Read only, opened: {1}", Name, Owner) : Name; }
+			get { return ReadOnly ? string.Format("{0} (Read only: {1})", Name, Owner) : Name; }
 		}
+
+		public string Text { get; set; }
 	}
 }

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.ObjectModel;
 using System.Timers;
 using EditorClient.Commands;
+using EditorClient.Helper;
 using EditorClient.ServiceReference;
 using OnlineEditor.Service;
 
@@ -14,20 +16,21 @@ namespace EditorClient.ViewModels
 	{
 		private const int Interval = 1000;
 		private readonly Timer _timer;
-		private ObservableCollection<Document> _documents;
-		private DocumentVm _currentDocument;
-		private Document _selectedDocument;
+		private ObservableCollection<DocumentVm> _documents;
+		private DocumentVm _selectedDocument;
+
+		private int _selectedIndex;
 
 		public DocumentListVm()
 		{
-			Documents = new ObservableCollection<Document>();
-			CreateCommand = new DelegateCommand<string>(Create, CanCreate);
-			LoadCommand = new DelegateCommand<string>(Load, CanLoad);
+			Documents = new ObservableCollection<DocumentVm>();
+			CreateCommand = new DelegateCommand<DocumentVm>(Create, CanCreate);
+			LoadCommand = new DelegateCommand<DocumentVm>(Load, CanLoad);
 
 			if (IsInDesignMode)
 			{
-				Documents.Add(new Document {Name = "doc1"});
-				Documents.Add(new Document {Name = "doc2"});
+				Documents.Add(new DocumentVm(new Document {Name = "doc1"}));
+				Documents.Add(new DocumentVm(new Document {Name = "doc2"}));
 			}
 			else
 			{
@@ -37,31 +40,32 @@ namespace EditorClient.ViewModels
 			}
 		}
 
-		public DelegateCommand<string> CreateCommand { get; set; }
+		public DelegateCommand<DocumentVm> CreateCommand { get; set; }
 
-		public DelegateCommand<string> LoadCommand { get; set; }
+		public DelegateCommand<DocumentVm> LoadCommand { get; set; }
 
-		public Document SelectedDocument
+		public int SelectedIndex
+		{
+			get { return _selectedIndex; }
+			set
+			{
+				_selectedIndex = value;
+				OnPropertyChanged("SelectedIndex");
+			}
+		}
+
+		public DocumentVm SelectedDocument
 		{
 			get { return _selectedDocument; }
 			set
 			{
 				_selectedDocument = value;
+				OnPropertyChanged("SelectedDocument");
 				LoadCommand.RaiseCanExecuteChanged();
 			}
 		}
 
-		public DocumentVm CurrentDocument
-		{
-			get { return _currentDocument; }
-			set
-			{
-				_currentDocument = value;
-				OnPropertyChanged("CurrentDocument");
-			}
-		}
-
-		public ObservableCollection<Document> Documents
+		public ObservableCollection<DocumentVm> Documents
 		{
 			get { return _documents; }
 			set
@@ -71,19 +75,19 @@ namespace EditorClient.ViewModels
 			}
 		}
 
-		private void Load(string name)
+		private void Load(DocumentVm doc)
 		{
-			CurrentDocument = new DocumentVm(SelectedDocument.Name);
+			SelectedDocument.Load();
 		}
 
-		private bool CanLoad(string arg)
+		private bool CanLoad(DocumentVm doc)
 		{
 			return Service.Online && SelectedDocument != null;
 		}
 
-		private void Create(string name)
+		private void Create(DocumentVm doc)
 		{
-			var result = Service.Proxy.Create(name, Service.CurrentUser);
+			var result = Service.Proxy.Create(null, Service.CurrentUser);
 			if (!result.Success)
 			{
 				const string Msg = "Failed to create document\r\nMessage: {0};\r\nState: {1}";
@@ -91,7 +95,7 @@ namespace EditorClient.ViewModels
 			}
 		}
 
-		private bool CanCreate(string arg)
+		private bool CanCreate(DocumentVm doc)
 		{
 			return Service.Online;
 		}
@@ -104,8 +108,18 @@ namespace EditorClient.ViewModels
 		private void UpdateList()
 		{
 			if (!Service.Online) return;
-			var availableDocuments = Service.Proxy.AvailableDocuments();
-			Documents = new ObservableCollection<Document>(availableDocuments);
+			var documents = Service.Proxy.AvailableDocuments().Select(x => new DocumentVm(x)).ToList();
+			if (Documents.SequenceEqual(documents, new DocumentStatefulComparer())) return;
+
+			if (SelectedDocument != null)
+			{
+				_selectedIndex = documents.Contains(SelectedDocument, new DocumentComparer())
+				                 	? Documents.IndexOf(SelectedDocument)
+				                 	: 0;
+			}
+
+			Documents = new ObservableCollection<DocumentVm>(documents);
+			OnPropertyChanged("SelectedIndex");
 		}
 	}
 }

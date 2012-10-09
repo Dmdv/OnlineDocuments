@@ -10,31 +10,24 @@ namespace EditorClient.ViewModels
 	/// </summary>
 	public class DocumentVm : BaseViewModel
 	{
-		private string _name;
-		private string _text;
-		private bool _isOpened;
-
-		public DocumentVm(string name)
+		public DocumentVm(Document doc)
 		{
-			Name = name;
-
-			SaveCommand = new DelegateCommand<string>(Save, CanSave);
-			CloseCommand = new DelegateCommand<string>(Close, CanClose);
-			DeleteCommand = new DelegateCommand<string>(Delete, CanDelete);
-
-			Dispatcher.BeginInvoke(new Action(LoadDocument));
+			Document = doc;
+			SaveCommand = new DelegateCommand<DocumentVm>(Save, CanSave);
+			CloseCommand = new DelegateCommand<DocumentVm>(Close, CanClose);
+			DeleteCommand = new DelegateCommand<DocumentVm>(Delete, CanDelete);
 		}
 
-		public DelegateCommand<string> SaveCommand { get; set; }
-		public DelegateCommand<string> CloseCommand { get; set; }
-		public DelegateCommand<string> DeleteCommand { get; set; }
+		public DelegateCommand<DocumentVm> SaveCommand { get; set; }
+		public DelegateCommand<DocumentVm> CloseCommand { get; set; }
+		public DelegateCommand<DocumentVm> DeleteCommand { get; set; }
 
 		public string Text
 		{
-			get { return _text; }
+			get { return Document.Text; }
 			set
 			{
-				_text = value;
+				Document.Text = value;
 				OnPropertyChanged("Text");
 				SaveCommand.RaiseCanExecuteChanged();
 			}
@@ -42,12 +35,19 @@ namespace EditorClient.ViewModels
 
 		public string Name
 		{
-			get { return _name; }
+			get { return Document.Name; }
 			set
 			{
-				_name = value;
+				Document.Name = value;
 				OnPropertyChanged("Name");
 			}
+		}
+
+		public Document Document { get; private set; }
+
+		public void Load()
+		{
+			Dispatcher.BeginInvoke(new Action(LoadDocument));
 		}
 
 		private void LoadDocument()
@@ -55,7 +55,6 @@ namespace EditorClient.ViewModels
 			var result = Service.Proxy.Open(Name, Service.CurrentUser);
 			if (result.Success)
 			{
-				_isOpened = true;
 				Text = result.Buffer;
 			}
 			else
@@ -95,27 +94,27 @@ namespace EditorClient.ViewModels
 			Text = string.Empty;
 		}
 
-		private void Close(string obj)
+		private void Close(DocumentVm obj)
 		{
 			Dispatcher.BeginInvoke(new Action(CloseDocument));
 		}
 
-		private bool CanClose(string arg)
+		private bool CanClose(DocumentVm arg)
 		{
-			return Service.Online && _isOpened;
+			return Service.Online;
 		}
 
-		private void Delete(string obj)
+		private void Delete(DocumentVm obj)
 		{
 			Dispatcher.BeginInvoke(new Action(DeleteDocument));
 		}
 
-		private bool CanDelete(string arg)
+		private bool CanDelete(DocumentVm arg)
 		{
-			return Service.Online && _isOpened;
+			return Service.Online;
 		}
 
-		private void Save(string text)
+		private void Save(DocumentVm text)
 		{
 			var result = Service.Proxy.Write(Name, Service.CurrentUser, Text);
 			if (!result.Success)
@@ -124,9 +123,9 @@ namespace EditorClient.ViewModels
 			}
 		}
 
-		private bool CanSave(string arg)
+		private bool CanSave(DocumentVm arg)
 		{
-			return Service.Online && _isOpened;
+			return Service.Online;
 		}
 	}
 }
