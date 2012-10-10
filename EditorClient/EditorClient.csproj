@@ -61,6 +61,7 @@
     <Compile Include="ServiceReference\DefaultLogger.cs" />
     <Compile Include="ServiceReference\ILogger.cs" />
     <Compile Include="ServiceReference\ServiceProxy.cs" />
+    <Compile Include="Services\Scheduler.cs" />
     <Compile Include="ViewModels\BaseViewModel.cs" />
     <Compile Include="Commands\DelegateCommand.cs" />
     <Compile Include="Commands\DispatcherProxy.cs" />

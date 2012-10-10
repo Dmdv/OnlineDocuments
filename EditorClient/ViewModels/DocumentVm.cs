@@ -1,6 +1,7 @@
 using System;
 using EditorClient.Commands;
 using EditorClient.ServiceReference;
+using EditorClient.Services;
 using OnlineEditor.Service;
 
 namespace EditorClient.ViewModels
@@ -10,17 +11,16 @@ namespace EditorClient.ViewModels
 	/// </summary>
 	public class DocumentVm : BaseViewModel
 	{
+		private int _taskId = -1;
+		private bool _deleted;
+
 		public DocumentVm(Document doc)
 		{
 			Document = doc;
-			SaveCommand = new DelegateCommand<DocumentVm>(Save, CanSave);
 			CloseCommand = new DelegateCommand<DocumentVm>(Close, CanClose);
-			DeleteCommand = new DelegateCommand<DocumentVm>(Delete, CanDelete);
 		}
 
-		public DelegateCommand<DocumentVm> SaveCommand { get; set; }
 		public DelegateCommand<DocumentVm> CloseCommand { get; set; }
-		public DelegateCommand<DocumentVm> DeleteCommand { get; set; }
 
 		public string Text
 		{
@@ -29,7 +29,6 @@ namespace EditorClient.ViewModels
 			{
 				Document.Text = value;
 				OnPropertyChanged("Text");
-				SaveCommand.RaiseCanExecuteChanged();
 			}
 		}
 
@@ -45,9 +44,21 @@ namespace EditorClient.ViewModels
 
 		public Document Document { get; private set; }
 
+		public bool IsEagerLoading
+		{
+			get { return Document.ReadOnly && Document.Owner == Service.CurrentUser; }
+		}
+
 		public void Load()
 		{
 			Dispatcher.BeginInvoke(new Action(LoadDocument));
+			_taskId = Scheduler.RegisterTask(Save, 1000);
+		}
+
+		public void Delete()
+		{
+			_deleted = true;
+			_taskId = Scheduler.UnregisterTask(_taskId);
 		}
 
 		private void LoadDocument()
@@ -83,20 +94,10 @@ namespace EditorClient.ViewModels
 			Text = string.Empty;
 		}
 
-		private void DeleteDocument()
-		{
-			var result = Service.Proxy.Delete(Name, Service.CurrentUser);
-			if (!result.Success)
-			{
-				const string Msg = "Failed to delete document\r\nMessage: {0};\r\nState: {1}";
-				Logger.LogError(string.Format(Msg, result.Buffer, result.State));
-			}
-			Text = string.Empty;
-		}
-
 		private void Close(DocumentVm obj)
 		{
 			Dispatcher.BeginInvoke(new Action(CloseDocument));
+			_taskId = Scheduler.UnregisterTask(_taskId);
 		}
 
 		private bool CanClose(DocumentVm arg)
@@ -104,28 +105,26 @@ namespace EditorClient.ViewModels
 			return Service.Online;
 		}
 
-		private void Delete(DocumentVm obj)
+		private void Save()
 		{
-			Dispatcher.BeginInvoke(new Action(DeleteDocument));
-		}
+			if (!CanSave()) return;
 
-		private bool CanDelete(DocumentVm arg)
-		{
-			return Service.Online;
-		}
-
-		private void Save(DocumentVm text)
-		{
 			var result = Service.Proxy.Write(Name, Service.CurrentUser, Text);
 			if (!result.Success)
 			{
-				Logger.LogError(result.Buffer);
+				var msg = result.State == State.Deleted ? "Document deleted" : string.Empty;
+				Logger.LogError(msg + "\r\n" + result.Buffer);
 			}
 		}
 
-		private bool CanSave(DocumentVm arg)
+		private bool CanSave()
 		{
-			return Service.Online;
+			return 
+				Service.Online && 
+				!_deleted &&
+				Document.ReadOnly && 
+				Document.Owner == Service.CurrentUser && 
+				Text != null;
 		}
 	}
 }

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.ObjectModel;
-using System.Timers;
 using EditorClient.Commands;
 using EditorClient.Helper;
 using EditorClient.ServiceReference;
+using EditorClient.Services;
 using OnlineEditor.Service;
 
 namespace EditorClient.ViewModels
@@ -14,8 +14,6 @@ namespace EditorClient.ViewModels
 	/// </summary>
 	public class DocumentListVm : BaseViewModel
 	{
-		private const int Interval = 1000;
-		private readonly Timer _timer;
 		private ObservableCollection<DocumentVm> _documents;
 		private DocumentVm _selectedDocument;
 
@@ -26,7 +24,8 @@ namespace EditorClient.ViewModels
 			Documents = new ObservableCollection<DocumentVm>();
 			CreateCommand = new DelegateCommand<DocumentVm>(Create, CanCreate);
 			LoadCommand = new DelegateCommand<DocumentVm>(Load, CanLoad);
-
+			DeleteCommand = new DelegateCommand<DocumentVm>(Delete, CanDelete);
+			
 			if (IsInDesignMode)
 			{
 				Documents.Add(new DocumentVm(new Document {Name = "doc1"}));
@@ -34,15 +33,23 @@ namespace EditorClient.ViewModels
 			}
 			else
 			{
-				_timer = new Timer { Enabled = true, Interval = Interval };
-				_timer.Elapsed += OnTimer;
-				_timer.Start();
+				Scheduler.RegisterTask(UpdateList, 1000);
 			}
 		}
 
 		public DelegateCommand<DocumentVm> CreateCommand { get; set; }
-
+		public DelegateCommand<DocumentVm> DeleteCommand { get; set; }
 		public DelegateCommand<DocumentVm> LoadCommand { get; set; }
+
+		public ObservableCollection<DocumentVm> Documents
+		{
+			get { return _documents; }
+			set
+			{
+				_documents = value;
+				OnPropertyChanged("Documents");
+			}
+		}
 
 		public int SelectedIndex
 		{
@@ -62,16 +69,33 @@ namespace EditorClient.ViewModels
 				_selectedDocument = value;
 				OnPropertyChanged("SelectedDocument");
 				LoadCommand.RaiseCanExecuteChanged();
+				DeleteCommand.RaiseCanExecuteChanged();
+				CreateCommand.RaiseCanExecuteChanged();
 			}
 		}
 
-		public ObservableCollection<DocumentVm> Documents
+		public void Delete(DocumentVm obj)
 		{
-			get { return _documents; }
-			set
+			Dispatcher.BeginInvoke(new Action(DeleteDocument));
+		}
+
+		private bool CanDelete(DocumentVm obj)
+		{
+			return Service.Online && SelectedDocument != null;
+		}
+
+		private void DeleteDocument()
+		{
+			var result = Service.Proxy.Delete(SelectedDocument.Name, Service.CurrentUser);
+			if (!result.Success)
 			{
-				_documents = value;
-				OnPropertyChanged("Documents");
+				const string Msg = "Failed to delete document\r\nMessage: {0};\r\nState: {1}";
+				Logger.LogError(string.Format(Msg, result.Buffer, result.State));
+			}
+			else
+			{
+				SelectedDocument.Delete();
+				Documents.Remove(SelectedDocument);
 			}
 		}
 
@@ -100,14 +124,14 @@ namespace EditorClient.ViewModels
 			return Service.Online;
 		}
 
-		void OnTimer(object sender, ElapsedEventArgs e)
-		{
-			Dispatcher.BeginInvoke(new Action(UpdateList));
-		}
-
 		private void UpdateList()
 		{
 			if (!Service.Online) return;
+			Dispatcher.BeginInvoke(new Action(UpdateListInternal));
+		}
+
+		private void UpdateListInternal()
+		{
 			var documents = Service.Proxy.AvailableDocuments().Select(x => new DocumentVm(x)).ToList();
 			if (Documents.SequenceEqual(documents, new DocumentStatefulComparer())) return;
 
@@ -118,7 +142,17 @@ namespace EditorClient.ViewModels
 				                 	: 0;
 			}
 
+			foreach (var document in Documents)
+			{
+				document.Delete();
+			}
+
 			Documents = new ObservableCollection<DocumentVm>(documents);
+			foreach (var doc in Documents.Where(x=>x.IsEagerLoading))
+			{
+				doc.Load();
+			}
+
 			OnPropertyChanged("SelectedIndex");
 		}
 	}
